@@ -4,8 +4,8 @@ export interface Campaign
   creator: string;  
   title: string;
   description: string;
-  goal: bigint;
+  goal: string;
   deadline: number;
-  pledged: bigint;
+  pledged: string;
   claimed: boolean;
 }

@@ -15,3 +15,16 @@ export async function testContractRead() {
     console.error("Error reading from contract:", err);
   }
 }
+
+export async function createCampaign(
+  title: string,
+  description: string,
+  goal: bigint,
+  durationInDays: number
+) {
+  const contract = await getContract();
+  if (!contract) throw new Error("Smart contract not loaded");
+  const tx = await contract.createCampaign(title, description, goal, durationInDays);
+  //await tx.wait(); // wait for transaction to confirm
+  return tx;
+}

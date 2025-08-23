@@ -13,10 +13,17 @@ export const db = getFirestore(app);
 // Example helper functions
 export const getCampaigns = async () => {
   const querySnapshot = await getDocs(collection(db, "campaigns"));
-  return querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+  return querySnapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      goal: BigInt(data.goal),         // convert string to bigint
+      pledged: BigInt(data.pledged),   // convert string to bigint
+      deadline: Number(data.deadline),
+      claimed: Boolean(data.claimed),
+    };
+  });
 };
 
 export const addCampaign = async (campaign: Campaign) => {
