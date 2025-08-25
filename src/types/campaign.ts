@@ -1,6 +1,6 @@
 export interface Campaign 
 {
-  id?: number;
+  id?: string;
   creator: string;  
   title: string;
   description: string;

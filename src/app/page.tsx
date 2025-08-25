@@ -1,6 +1,8 @@
 import WalletConnect from "../components/WalletConnect";
 import ShowTotalCampaigns from "@/components/ShowTotalCampaigns";
 import CreateCampaignForm from "@/components/CreateComponentsForm";
+import CampaignList from "@/components/CampaignList";
+import CampaignDetails from "@/components/CampaignDetails";
 
 export default function Home() {
   return (
@@ -10,6 +12,8 @@ export default function Home() {
       <WalletConnect />
       <ShowTotalCampaigns />
       <CreateCampaignForm />
+      <CampaignList />
+
     </main>
   );
 }

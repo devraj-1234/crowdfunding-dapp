@@ -18,8 +18,11 @@ export const getCampaigns = async () => {
     return {
       id: doc.id,
       ...data,
-      goal: BigInt(data.goal),         // convert string to bigint
-      pledged: BigInt(data.pledged),   // convert string to bigint
+      creator: data.creator,
+      title: data.title,
+      description: data.description,
+      goal: data.goal,         // convert string to bigint
+      pledged: data.pledged,   // convert string to bigint
       deadline: Number(data.deadline),
       claimed: Boolean(data.claimed),
     };
