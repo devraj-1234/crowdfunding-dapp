@@ -11,6 +11,7 @@ export async function testContractRead() {
     // Example: read total campaigns from your crowdfunding contract
     const totalCampaigns: bigint = await contract.campaignCount();
     console.log("Total campaigns:", totalCampaigns.toString());
+    return Number(totalCampaigns);
   } catch (err) {
     console.error("Error reading from contract:", err);
   }

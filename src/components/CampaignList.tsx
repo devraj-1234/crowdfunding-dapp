@@ -64,18 +64,18 @@ export default function CampaignList() {
             style={{
               margin: "1em 0",
               padding: "1em",
-              border: "1px solid #eee",
+              border: "1px solid #090808ff",
               cursor: "pointer",
               borderRadius: 4,
-              backgroundColor: "#fafafa",
+              backgroundColor: "#090808ff",
               transition: "background-color 0.2s ease",
             }}
             onClick={() => setSelectedCampaignId(c.id!)}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#f0f0f0")
+              (e.currentTarget.style.backgroundColor = "#5971e8ff")
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#fafafa")
+              (e.currentTarget.style.backgroundColor = "#3b3a53ff")
             }
           >
             <strong>{c.title}</strong>

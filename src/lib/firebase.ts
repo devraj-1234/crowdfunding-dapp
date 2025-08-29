@@ -1,6 +1,6 @@
 // src/lib/firebase.ts
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
+import { getFirestore, collection, getDocs, addDoc, doc, updateDoc } from "firebase/firestore";
 
 import firebaseConfig from "../../config/firebaseConfig.json"; 
 // adjust path if needed
@@ -17,14 +17,14 @@ export const getCampaigns = async () => {
     const data = doc.data();
     return {
       id: doc.id,
-      ...data,
       creator: data.creator,
       title: data.title,
       description: data.description,
-      goal: data.goal,         // convert string to bigint
-      pledged: data.pledged,   // convert string to bigint
+      goal: data.goal,
+      pledged: data.pledged,
       deadline: Number(data.deadline),
       claimed: Boolean(data.claimed),
+      chainId: data.chainId, // Explicitly include chainId
     };
   });
 };
@@ -32,3 +32,16 @@ export const getCampaigns = async () => {
 export const addCampaign = async (campaign: Campaign) => {
   return await addDoc(collection(db, "campaigns"), campaign);
 };
+
+export async function updateCampaignChainId(docId: string, chainId: number) {
+  const campaignRef = doc(db, "campaigns", docId);
+  await updateDoc(campaignRef, { chainId });
+}
+
+export async function updatePledgedAmount(
+  docId: string,
+  newPledgedAmount: string
+) {
+  const campaignRef = doc(db, "campaigns", docId);
+  await updateDoc(campaignRef, { pledged: newPledgedAmount });
+}

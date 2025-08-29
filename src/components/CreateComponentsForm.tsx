@@ -1,10 +1,13 @@
 "use client";
 
+import CrowdFundABI from "../contracts/CrowdFundABI.json";
+
 import { Eip1193Provider } from "ethers";
 import { useState } from "react";
 import { createCampaign } from "../lib/contractUtils";
 import { ethers } from "ethers";
-import { addCampaign } from "../lib/firebase";
+import { addCampaign, updateCampaignChainId } from "../lib/firebase";
+import { Log } from "ethers";
 
 export default function CreateCampaignForm() {
   const [title, setTitle] = useState("");
@@ -68,11 +71,42 @@ export default function CreateCampaignForm() {
         deadline: campaignDeadline,
         pledged: "0",
         claimed: false,
-
         // Add any other relevant data you want to store off-chain
       };
 
-      await addCampaign(campaignMetadata);
+      const docRef = await addCampaign(campaignMetadata);
+      const docId = docRef.id;
+      const receipt = await tx.wait();
+
+      if (receipt) {
+        // The modern way to parse events from a transaction receipt
+        const iface = new ethers.Interface(CrowdFundABI);
+        const campaignCreatedLog = receipt.logs
+          .map((log: Log) => {
+            try {
+              // Attempt to parse the log with our contract's interface
+              return iface.parseLog(log);
+            } catch {
+              // This log is not from our contract, or not one of its events
+              return null;
+            }
+          })
+          .find(
+            (log: ethers.LogDescription | null) =>
+              log?.name === "CampaignCreated"
+          );
+
+        if (campaignCreatedLog && campaignCreatedLog.args) {
+          const campaignId = Number(campaignCreatedLog.args[0]);
+          await updateCampaignChainId(docId, campaignId);
+        } else {
+          console.warn(
+            "CampaignCreated event not found in transaction receipt; chainId not updated"
+          );
+        }
+      } else {
+        console.error("Transaction receipt not found.");
+      }
 
       setSuccess("Campaign created successfully!");
       setTitle("");

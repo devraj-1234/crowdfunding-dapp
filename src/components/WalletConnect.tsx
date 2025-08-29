@@ -1,6 +1,8 @@
 "use client";
 
+// import CrowdFundABI from "../contracts/CrowdFundABI.json";
 import { useState, useEffect } from "react";
+// import { Contract, BrowserProvider } from "ethers";
 
 export default function WalletConnect() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -43,6 +45,7 @@ export default function WalletConnect() {
     }
     checkConnection();
   }, []);
+  
 
   return (
     <div>

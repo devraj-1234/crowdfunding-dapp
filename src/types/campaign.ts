@@ -1,6 +1,8 @@
 export interface Campaign 
 {
   id?: string;
+  chainId?: number;
+  
   creator: string;  
   title: string;
   description: string;

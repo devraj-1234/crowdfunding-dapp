@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Campaign } from "@/types/campaign";
-import { BrowserProvider, Contract, parseEther } from "ethers";
+import { BrowserProvider, Contract, parseEther, formatEther } from "ethers";
+import { updatePledgedAmount } from "@/lib/firebase";
 
 interface Props {
   campaign: Campaign;
@@ -19,6 +20,7 @@ export default function CampaignDetails({
 }: Props) {
   const [amount, setAmount] = useState("");
   const [txStatus, setTxStatus] = useState<string | null>(null);
+  const [currentCampaign, setCurrentCampaign] = useState<Campaign>(campaign);
 
   async function fundCampaign() {
     if (!window.ethereum) {
@@ -26,16 +28,17 @@ export default function CampaignDetails({
       return;
     }
 
-    // Convert campaign.id (string) to number to match uint32 expected by contract
-    const campaignIdNumeric = Number(campaign.id);
+    // Use the on-chain campaign ID for the transaction
+    const campaignIdNumeric = Number(currentCampaign.chainId);
     if (Number.isNaN(campaignIdNumeric)) {
-      setTxStatus("Error: Campaign ID is not a valid number");
+      setTxStatus("Error: On-chain Campaign ID is missing or invalid.");
       return;
     }
 
     try {
       setTxStatus("Waiting for transaction confirmation...");
       const provider = new BrowserProvider(window.ethereum);
+
       const signer = await provider.getSigner();
       const contract = new Contract(contractAddress, contractAbi, signer);
 
@@ -43,6 +46,21 @@ export default function CampaignDetails({
         value: parseEther(amount),
       });
       await tx.wait();
+
+      // --- Update off-chain database ---
+      const currentPledged = BigInt(currentCampaign.pledged);
+      const newPledged = currentPledged + BigInt(parseEther(amount));
+      if (currentCampaign.id) {
+        await updatePledgedAmount(currentCampaign.id, newPledged.toString());
+      }
+
+      // --- Update local state for immediate UI feedback ---
+      setCurrentCampaign({
+        ...currentCampaign,
+        pledged: newPledged.toString(),
+      });
+      // --- End of update ---
+
       setTxStatus("Funding successful!");
       setAmount("");
     } catch (err: unknown) {
@@ -60,23 +78,23 @@ export default function CampaignDetails({
         &larr; Back to Campaigns
       </button>
 
-      <h2>{campaign.title}</h2>
-      <p>{campaign.description}</p>
+      <h2>{currentCampaign.title}</h2>
+      <p>{currentCampaign.description}</p>
       <p>
-        <strong>Goal:</strong> {campaign.goal.toString()}
+        <strong>Goal:</strong> {formatEther(currentCampaign.goal)} ETH
       </p>
       <p>
-        <strong>Pledged:</strong> {campaign.pledged.toString()}
+        <strong>Pledged:</strong> {formatEther(currentCampaign.pledged)} ETH
       </p>
       <p>
         <strong>Deadline:</strong>{" "}
-        {new Date(campaign.deadline * 1000).toLocaleString()}
+        {new Date(currentCampaign.deadline * 1000).toLocaleString()}
       </p>
       <p>
-        <strong>Creator:</strong> {campaign.creator}
+        <strong>Creator:</strong> {currentCampaign.creator}
       </p>
       <p>
-        <strong>Claimed:</strong> {campaign.claimed ? "Yes" : "No"}
+        <strong>Claimed:</strong> {currentCampaign.claimed ? "Yes" : "No"}
       </p>
 
       <div style={{ marginTop: "2em" }}>

@@ -2,7 +2,7 @@ import WalletConnect from "../components/WalletConnect";
 import ShowTotalCampaigns from "@/components/ShowTotalCampaigns";
 import CreateCampaignForm from "@/components/CreateComponentsForm";
 import CampaignList from "@/components/CampaignList";
-import CampaignDetails from "@/components/CampaignDetails";
+//import CampaignDetails from "@/components/CampaignDetails";
 
 export default function Home() {
   return (
