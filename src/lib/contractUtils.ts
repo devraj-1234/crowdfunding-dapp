@@ -29,3 +29,17 @@ export async function createCampaign(
   //await tx.wait(); // wait for transaction to confirm
   return tx;
 }
+
+export async function claimFunds(campaignId: number) {
+  const contract = await getContract();
+  if (!contract) throw new Error("Smart contract not loaded");
+  const tx = await contract.claimFunds(campaignId);
+  return tx;
+}
+
+export async function callOffCampaign(campaignId: number) {
+  const contract = await getContract();
+  if (!contract) throw new Error("Smart contract not loaded");
+  const tx = await contract.callOffCampaign(campaignId);
+  return tx;
+}

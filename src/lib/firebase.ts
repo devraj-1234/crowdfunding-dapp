@@ -45,3 +45,8 @@ export async function updatePledgedAmount(
   const campaignRef = doc(db, "campaigns", docId);
   await updateDoc(campaignRef, { pledged: newPledgedAmount });
 }
+
+export async function updateCampaignClaimedStatus(docId: string) {
+  const campaignRef = doc(db, "campaigns", docId);
+  await updateDoc(campaignRef, { claimed: true });
+}

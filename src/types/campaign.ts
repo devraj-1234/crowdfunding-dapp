@@ -1,5 +1,4 @@
-export interface Campaign 
-{
+export interface Campaign {
   id?: string;
   chainId?: number;
   
@@ -10,4 +9,5 @@ export interface Campaign
   deadline: number;
   pledged: string;
   claimed: boolean;
+  calledOff?: boolean;
 }
