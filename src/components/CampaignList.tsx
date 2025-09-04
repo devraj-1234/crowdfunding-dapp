@@ -3,92 +3,19 @@
 import { useState, useEffect } from "react";
 import { getCampaigns } from "../lib/firebase";
 import { Campaign } from "@/types/campaign";
-import CampaignDetails from "./CampaignDetails";
-import { CONTRACT_ABI, CONTRACT_ADDRESS } from "@/lib/constants";
 import ProgressBar from "./ProgressBar";
 import { formatEther } from "ethers";
 
-export default function CampaignList() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
-    null
-  );
-
-  useEffect(() => {
-    async function fetchCampaigns() {
-      setLoading(true);
-      try {
-        const data = await getCampaigns();
-        setCampaigns(data);
-      } catch {
-        setCampaigns([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchCampaigns();
-  }, []);
-
-  if (loading) return <p>Loading campaigns...</p>;
-
-  if (selectedCampaignId) {
-    const selectedCampaign = campaigns.find((c) => c.id === selectedCampaignId);
-    if (!selectedCampaign) {
-      return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-8 border border-red-500/20 text-center">
-            <p className="text-red-400 text-lg mb-4">Campaign not found!</p>
-            <button
-              onClick={() => setSelectedCampaignId(null)}
-              className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg 
-                transition-all duration-200 border border-green-500/20 hover:border-green-500/40
-                flex items-center space-x-2 mx-auto group"
-            >
-              <svg
-                className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-200"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
-              <span>Back to Campaigns</span>
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return (
-      <CampaignDetails
-        campaign={selectedCampaign}
-        onBack={() => setSelectedCampaignId(null)}
-        contractAddress={CONTRACT_ADDRESS}
-        contractAbi={CONTRACT_ABI}
-      />
-    );
-  }
-
-  if (!campaigns.length)
-    return (
-      <div className="text-center p-8">
-        <p className="text-gray-500 text-lg">No campaigns found.</p>
-      </div>
-    );
-
-  // Separate campaigns into active and claimed
-  const activeCampaigns = campaigns.filter((c) => !c.claimed && !c.calledOff);
-  const claimedCampaigns = campaigns.filter((c) => c.claimed);
-
-  const CampaignCard = ({ campaign }: { campaign: Campaign }) => (
+function CampaignCard({
+  campaign,
+  onSelect,
+}: {
+  campaign: Campaign;
+  onSelect: (campaign: Campaign) => void;
+}) {
+  return (
     <div
-      key={campaign.id}
-      onClick={() => setSelectedCampaignId(campaign.id!)}
+      onClick={() => onSelect(campaign)}
       className="bg-gray-800/50 backdrop-blur-sm rounded-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-[1.02] border border-green-500/20 hover:border-green-400/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] group relative z-10"
     >
       <div className="p-6">
@@ -108,7 +35,10 @@ export default function CampaignList() {
                 ETH
               </span>
             </div>
-            <ProgressBar current={campaign.pledged} goal={campaign.goal} />
+            <ProgressBar
+              goal={campaign.goal.toString()}
+              current={campaign.pledged.toString()}
+            />
           </div>
 
           <div className="flex justify-between items-center text-sm">
@@ -131,12 +61,8 @@ export default function CampaignList() {
               </span>
             </div>
             {campaign.claimed ? (
-              <span className="bg-green-900/50 text-green-400 px-3 py-1 rounded-full text-xs border border-green-500/50">
-                Claimed
-              </span>
-            ) : campaign.calledOff ? (
-              <span className="bg-red-900/50 text-red-400 px-3 py-1 rounded-full text-xs border border-red-500/50">
-                Called Off
+              <span className="bg-gray-700 text-gray-400 px-3 py-1 rounded-full text-xs border border-gray-600">
+                Closed
               </span>
             ) : (
               <span className="bg-blue-900/50 text-blue-400 px-3 py-1 rounded-full text-xs border border-blue-500/50">
@@ -157,42 +83,84 @@ export default function CampaignList() {
       </div>
     </div>
   );
+}
+
+export default function CampaignList({
+  onCampaignSelect,
+}: {
+  onCampaignSelect: (campaign: Campaign) => void;
+}) {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCampaigns() {
+      setLoading(true);
+      try {
+        const data = await getCampaigns();
+        setCampaigns(data);
+      } catch {
+        setCampaigns([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCampaigns();
+  }, []);
+
+  if (loading)
+    return <p className="text-center text-gray-400">Loading campaigns...</p>;
+
+  if (!campaigns.length)
+    return (
+      <div className="text-center p-8">
+        <p className="text-gray-500 text-lg">No campaigns found.</p>
+      </div>
+    );
+
+  const activeCampaigns = campaigns.filter((c) => !c.claimed);
+  const claimedCampaigns = campaigns.filter((c) => c.claimed);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-      {/* Active Campaigns Section */}
+    <div className="space-y-12">
       <section>
-        <h2 className="text-3xl font-bold text-green-400 mb-8 glow-text flex items-center">
-          Active Campaigns
-          <span className="ml-3 text-lg bg-green-900/50 text-green-400 px-3 py-1 rounded-full text-sm border border-green-500/50">
+        <h2 className="text-2xl font-bold text-green-400 mb-4 glow-text flex items-center space-x-3">
+          <span>Active Campaigns</span>
+          <span className="text-sm bg-green-500/20 text-green-300 rounded-full px-3 py-1">
             {activeCampaigns.length}
           </span>
         </h2>
         {activeCampaigns.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {activeCampaigns.map((campaign) => (
-              <CampaignCard key={campaign.id} campaign={campaign} />
+              <CampaignCard
+                key={campaign.id}
+                campaign={campaign}
+                onSelect={onCampaignSelect}
+              />
             ))}
           </div>
         ) : (
-          <p className="text-gray-400 text-center py-8">
-            No active campaigns at the moment.
-          </p>
+          <p className="text-gray-500">No active campaigns at the moment.</p>
         )}
       </section>
 
-      {/* Claimed Campaigns Section */}
       {claimedCampaigns.length > 0 && (
         <section>
-          <h2 className="text-3xl font-bold text-green-400 mb-8 glow-text flex items-center">
-            Claimed Campaigns
-            <span className="ml-3 text-lg bg-green-900/50 text-green-400 px-3 py-1 rounded-full text-sm border border-green-500/50">
+          <div className="border-t border-green-500/10 my-12"></div>
+          <h2 className="text-2xl font-bold text-gray-500 mb-4 flex items-center space-x-3">
+            <span>Claimed & Called Off</span>
+            <span className="text-sm bg-gray-700/50 text-gray-400 rounded-full px-3 py-1">
               {claimedCampaigns.length}
             </span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {claimedCampaigns.map((campaign) => (
-              <CampaignCard key={campaign.id} campaign={campaign} />
+              <CampaignCard
+                key={campaign.id}
+                campaign={campaign}
+                onSelect={onCampaignSelect}
+              />
             ))}
           </div>
         </section>

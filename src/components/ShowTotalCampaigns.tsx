@@ -14,7 +14,7 @@ export default function ShowTotalCampaigns() {
         if (contract !== undefined) {
           setTotalCampaigns(contract);
         }
-      } catch (err) {
+      } catch {
         setError("Error reading campaigns count");
       }
     }

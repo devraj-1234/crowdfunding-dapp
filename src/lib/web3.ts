@@ -4,7 +4,7 @@ import { CONTRACT_ADDRESS, CONTRACT_ABI } from "./constants";
 // Extend Window type for MetaMask
 declare global {
   interface Window {
-    ethereum?: Eip1193Provider;
+    ethereum?: EthereumProvider;
   }
 }
 
