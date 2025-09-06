@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { formatEther } from "ethers";
+import useIsomorphicEffect from "../hooks/useIsomorphicEffect";
 
 interface WalletInfo {
   address: string;
@@ -13,6 +14,7 @@ export default function WalletConnect() {
   const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const getBalance = useCallback(async (address: string): Promise<string> => {
     if (!window.ethereum) return "0";
@@ -29,7 +31,7 @@ export default function WalletConnect() {
   }, []);
 
   const getChainId = useCallback(async (): Promise<string> => {
-    if (!window.ethereum) return "0x1";
+    if (typeof window === "undefined" || !window.ethereum) return "0x1";
     try {
       const chainId = await window.ethereum.request({ method: "eth_chainId" });
       return chainId as string;
@@ -53,10 +55,14 @@ export default function WalletConnect() {
   const connectWallet = async () => {
     setError(null);
     try {
-      if (!window.ethereum) {
+      if (typeof window === "undefined" || !window.ethereum) {
         setError("MetaMask is not installed");
         return;
       }
+
+      // Clear any previous disconnect state
+      localStorage.removeItem("wallet_disconnected");
+
       const accounts = (await window.ethereum.request({
         method: "eth_requestAccounts",
       })) as string[];
@@ -71,16 +77,50 @@ export default function WalletConnect() {
   };
 
   const disconnectWallet = () => {
+    // Actually disconnect by clearing the state
     setWalletInfo(null);
     setIsDropdownOpen(false);
+    // Store in localStorage to prevent auto-reconnect
+    localStorage.setItem("wallet_disconnected", "true");
   };
 
+  // Handle outside clicks to close dropdown
+  useIsomorphicEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+
+    // Attach the event listener
+    document.addEventListener("mousedown", handleClickOutside);
+
+    // Clean up
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
+    // Skip during server-side rendering
+    if (typeof window === "undefined") return;
+
     const ethereum = window.ethereum;
     if (!ethereum) return;
 
     const checkConnection = async () => {
       try {
+        // Check if user has explicitly disconnected
+        const isDisconnected =
+          localStorage.getItem("wallet_disconnected") === "true";
+        if (isDisconnected) {
+          // User has explicitly disconnected, don't auto-connect
+          return;
+        }
+
         const accounts = (await ethereum.request({
           method: "eth_accounts",
         })) as string[];
@@ -95,6 +135,8 @@ export default function WalletConnect() {
 
     const handleAccountsChanged = async (accounts: string[]) => {
       if (accounts.length > 0) {
+        // When accounts change, we assume user is actively connecting
+        localStorage.removeItem("wallet_disconnected");
         await updateWalletInfo(accounts[0]);
       } else {
         disconnectWallet();
@@ -132,19 +174,19 @@ export default function WalletConnect() {
   return (
     <div className="relative">
       {walletInfo ? (
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center space-x-2 border border-green-500/20 transition-all duration-200 hover:border-green-500/40 group"
+            className="bg-white hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg flex items-center space-x-2 border border-blue-200 transition-all duration-200 hover:border-blue-400 group"
           >
-            <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
-            <span className="text-sm font-medium truncate group-hover:text-green-400">
+            <div className="w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(56,189,248,0.5)]"></div>
+            <span className="text-sm font-medium truncate group-hover:text-blue-500">
               {walletInfo.address.slice(0, 6)}...{walletInfo.address.slice(-4)}
             </span>
             <svg
               className={`h-4 w-4 transition-transform duration-200 ${
                 isDropdownOpen ? "rotate-180" : ""
-              } text-green-500`}
+              } text-blue-500`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -159,30 +201,30 @@ export default function WalletConnect() {
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-72 rounded-lg bg-gray-900/95 backdrop-blur-sm border border-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.2)] z-50 animate-gradient">
+            <div className="absolute right-0 mt-2 w-72 rounded-lg bg-white/95 backdrop-blur-sm border border-blue-200 shadow-xl z-[100] animate-gradient">
               <div className="p-4 space-y-3">
                 <div className="space-y-1">
-                  <p className="text-green-500 text-xs">Account</p>
-                  <p className="text-white text-sm font-mono break-all bg-gray-800/50 p-2 rounded border border-green-500/10">
+                  <p className="text-blue-500 text-xs">Account</p>
+                  <p className="text-gray-800 text-sm font-mono break-all bg-gray-100/50 p-2 rounded border border-blue-100">
                     {walletInfo.address}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-green-500 text-xs">Balance</p>
-                  <p className="text-white text-sm font-mono">
+                  <p className="text-blue-500 text-xs">Balance</p>
+                  <p className="text-gray-800 text-sm font-mono">
                     {Number(walletInfo.balance).toFixed(4)} ETH
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-green-500 text-xs">Network</p>
-                  <p className="text-white text-sm font-mono">
+                  <p className="text-blue-500 text-xs">Network</p>
+                  <p className="text-gray-800 text-sm font-mono">
                     {getNetworkName(walletInfo.chainId)}
                   </p>
                 </div>
-                <div className="pt-2 border-t border-green-500/20">
+                <div className="pt-2 border-t border-blue-200">
                   <button
                     onClick={disconnectWallet}
-                    className="w-full text-center py-2 px-4 rounded bg-red-900/50 hover:bg-red-800 text-red-400 hover:text-red-300 text-sm transition-all duration-200 border border-red-500/20 hover:border-red-500/40"
+                    className="w-full text-center py-2 px-4 rounded bg-red-100/50 hover:bg-red-200 text-red-600 hover:text-red-500 text-sm transition-all duration-200 border border-red-300 hover:border-red-400"
                   >
                     Disconnect
                   </button>
@@ -194,9 +236,9 @@ export default function WalletConnect() {
       ) : (
         <button
           onClick={connectWallet}
-          className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 
-            transition-all duration-200 hover:scale-105 border border-green-500/50 
-            shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]"
+          className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 
+            transition-all duration-200 hover:scale-105 border border-blue-500/50 
+            shadow-md hover:shadow-lg"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -216,7 +258,7 @@ export default function WalletConnect() {
       )}
       {error && (
         <div className="absolute top-full left-0 right-0 mt-2">
-          <div className="bg-red-900/50 text-red-200 text-sm p-3 rounded-lg border border-red-800">
+          <div className="bg-red-100 text-red-600 text-sm p-3 rounded-lg border border-red-300">
             <div className="flex items-center space-x-2">
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path

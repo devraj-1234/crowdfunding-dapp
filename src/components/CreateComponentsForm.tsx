@@ -1,13 +1,13 @@
 "use client";
 
 import CrowdFundABI from "../contracts/CrowdFundABI.json";
-
 import { Eip1193Provider } from "ethers";
 import { useState } from "react";
 import { createCampaign } from "../lib/contractUtils";
 import { ethers } from "ethers";
 import { addCampaign, updateCampaignChainId } from "../lib/firebase";
 import { Log } from "ethers";
+import { Sparkles, XCircle, CheckCircle } from "lucide-react";
 
 export default function CreateCampaignForm() {
   const [title, setTitle] = useState("");
@@ -19,7 +19,7 @@ export default function CreateCampaignForm() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const inputClasses =
-    "w-full bg-gray-800 border border-green-500/20 rounded-lg px-4 py-3 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all duration-200";
+    "w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all duration-200";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,67 +128,42 @@ export default function CreateCampaignForm() {
     <div className="w-full max-w-lg mx-auto">
       <form
         onSubmit={handleSubmit}
-        className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-green-500/20 p-8 shadow-[0_0_30px_rgba(34,197,94,0.1)]"
+        className="bg-white rounded-3xl border border-gray-200 p-8 shadow-xl"
       >
         <div className="space-y-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-green-400 mb-2 glow-text">
-              Create New Campaign
+            <h2 className="text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
+              <Sparkles className="text-yellow-500" size={24} />
+              Launch New Campaign
             </h2>
-            <p className="text-gray-400">
-              Launch your crowdfunding project on the blockchain
+            <p className="text-gray-500">
+              Share your vision and start gathering support today.
             </p>
           </div>
 
           <div className="space-y-6">
             <div>
-              <label className="block text-green-400 text-sm font-medium mb-2 flex items-center space-x-2">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-                <span>Campaign Title</span>
+              <label className="block text-gray-600 text-sm font-medium mb-2">
+                Campaign Title
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className={`${inputClasses} hover:border-green-500/40`}
+                className={inputClasses}
                 placeholder="Enter campaign title"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-green-400 text-sm font-medium mb-2 flex items-center space-x-2">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  />
-                </svg>
-                <span>Description</span>
+              <label className="block text-gray-600 text-sm font-medium mb-2">
+                Description
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className={`${inputClasses} min-h-[120px] resize-y hover:border-green-500/40`}
+                className={`${inputClasses} min-h-[120px] resize-y`}
                 placeholder="Describe your campaign's goals and vision"
                 required
               />
@@ -196,65 +171,39 @@ export default function CreateCampaignForm() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-green-400 text-sm font-medium mb-2 flex items-center space-x-2">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <span>Funding Goal</span>
+                <label className="block text-gray-600 text-sm font-medium mb-2">
+                  Funding Goal
                 </label>
                 <div className="relative">
                   <input
                     type="number"
                     value={goal}
                     onChange={(e) => setGoal(e.target.value)}
-                    className={`${inputClasses} pl-12 hover:border-green-500/40`}
+                    className={`${inputClasses} pl-12`}
                     placeholder="0.0"
                     step="0.01"
                     required
                   />
-                  <div className="absolute inset-y-0 left-0 flex items-center px-4 pointer-events-none text-green-500 font-mono">
+                  <div className="absolute inset-y-0 left-0 flex items-center px-4 pointer-events-none text-gray-500 font-mono">
                     ETH
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-green-400 text-sm font-medium mb-2 flex items-center space-x-2">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <span>Duration</span>
+                <label className="block text-gray-600 text-sm font-medium mb-2">
+                  Duration
                 </label>
                 <div className="relative">
                   <input
                     type="number"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
-                    className={`${inputClasses} pl-14 hover:border-green-500/40`}
+                    className={`${inputClasses} pl-14`}
                     placeholder="30"
                     required
                   />
-                  <div className="absolute inset-y-0 left-0 flex items-center px-4 pointer-events-none text-green-500 font-mono">
+                  <div className="absolute inset-y-0 left-0 flex items-center px-4 pointer-events-none text-gray-500 font-mono">
                     Days
                   </div>
                 </div>
@@ -265,10 +214,9 @@ export default function CreateCampaignForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600/90 hover:bg-green-500/90 text-white py-4 px-6 rounded-lg font-semibold 
+            className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white py-4 px-6 rounded-full font-semibold 
               transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] 
-              active:scale-[0.98] shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)]
-              backdrop-blur-sm border border-green-400/20 hover:border-green-400/40"
+              active:scale-[0.98] shadow-lg hover:shadow-xl"
           >
             {loading ? (
               <div className="flex items-center justify-center space-x-2">
@@ -290,63 +238,23 @@ export default function CreateCampaignForm() {
                 <span>Creating Campaign...</span>
               </div>
             ) : (
-              <div className="flex items-center justify-center space-x-2">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
+              <div className="flex items-center justify-center gap-2">
+                <Sparkles className="text-white" size={20} />
                 <span>Launch Campaign</span>
               </div>
             )}
           </button>
 
           {error && (
-            <div className="p-4 bg-red-900/50 border border-red-500/50 rounded-lg text-red-400 text-sm backdrop-blur-sm">
-              <div className="flex items-center space-x-2">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span>{error}</span>
-              </div>
+            <div className="mt-4 p-4 bg-red-100 border border-red-300 rounded-lg text-red-700 text-sm flex items-center gap-2">
+              <XCircle size={20} />
+              <span>{error}</span>
             </div>
           )}
           {success && (
-            <div className="p-4 bg-green-900/50 border border-green-500/50 rounded-lg text-green-400 text-sm backdrop-blur-sm">
-              <div className="flex items-center space-x-2">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-                <span>{success}</span>
-              </div>
+            <div className="mt-4 p-4 bg-green-100 border border-green-300 rounded-lg text-green-700 text-sm flex items-center gap-2">
+              <CheckCircle size={20} />
+              <span>{success}</span>
             </div>
           )}
         </div>

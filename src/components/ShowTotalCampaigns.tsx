@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { testContractRead } from "../lib/contractUtils";
+import { Target } from "lucide-react";
 
 export default function ShowTotalCampaigns() {
   const [totalCampaigns, setTotalCampaigns] = useState<number | null>(null);
@@ -10,7 +11,7 @@ export default function ShowTotalCampaigns() {
   useEffect(() => {
     async function fetchTotal() {
       try {
-        const contract = await testContractRead(); // we will modify testContractRead to return value
+        const contract = await testContractRead(); 
         if (contract !== undefined) {
           setTotalCampaigns(contract);
         }
@@ -22,9 +23,9 @@ export default function ShowTotalCampaigns() {
   }, []);
 
   return (
-    <div className="bg-gray-800 border border-gray-700 px-4 py-2 rounded-lg">
+    <div className="bg-white rounded-2xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
       {error ? (
-        <div className="text-red-400 text-sm flex items-center">
+        <div className="text-red-500 text-sm flex items-center justify-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5 mr-1"
@@ -40,27 +41,15 @@ export default function ShowTotalCampaigns() {
           {error}
         </div>
       ) : totalCampaigns !== null ? (
-        <div className="flex items-center space-x-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-blue-400"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-            <path
-              fillRule="evenodd"
-              d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span className="font-medium text-white">{totalCampaigns}</span>
-          <span className="text-gray-400">Total Campaigns</span>
+        <div className="flex flex-col items-center justify-center">
+          <Target className="text-green-500 mx-auto mb-3 animate-pulse" size={32} />
+          <div className="text-2xl font-bold text-gray-800 mb-1">{totalCampaigns}</div>
+          <div className="text-gray-600 text-sm">Total Campaigns</div>
         </div>
       ) : (
-        <div className="flex items-center space-x-2 text-gray-400">
+        <div className="flex flex-col items-center justify-center space-y-2 text-gray-400">
           <svg
-            className="animate-spin h-5 w-5"
+            className="animate-spin h-8 w-8 text-blue-500"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -79,7 +68,7 @@ export default function ShowTotalCampaigns() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <span>Loading campaigns...</span>
+          <span className="text-base">Loading...</span>
         </div>
       )}
     </div>

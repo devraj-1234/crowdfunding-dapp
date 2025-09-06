@@ -16,21 +16,21 @@ function CampaignCard({
   return (
     <div
       onClick={() => onSelect(campaign)}
-      className="bg-gray-800/50 backdrop-blur-sm rounded-lg overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-[1.02] border border-green-500/20 hover:border-green-400/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] group relative z-10"
+      className="bg-white rounded-2xl overflow-hidden cursor-pointer transform transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-2xl relative z-10"
     >
       <div className="p-6">
-        <h3 className="text-xl font-semibold text-green-400 mb-2 line-clamp-1 group-hover:text-green-300">
+        <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-1">
           {campaign.title}
         </h3>
-        <p className="text-gray-400 mb-4 line-clamp-2">
+        <p className="text-gray-500 mb-4 line-clamp-2 text-sm">
           {campaign.description}
         </p>
 
         <div className="space-y-4">
           <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-green-500">Progress</span>
-              <span className="text-gray-300 font-mono">
+            <div className="flex justify-between text-xs mb-1 font-mono">
+              <span className="text-gray-600">Progress</span>
+              <span className="text-gray-800">
                 {formatEther(campaign.pledged)} / {formatEther(campaign.goal)}{" "}
                 ETH
               </span>
@@ -42,7 +42,7 @@ function CampaignCard({
           </div>
 
           <div className="flex justify-between items-center text-sm">
-            <div className="text-gray-400 flex items-center space-x-1">
+            <div className="text-gray-500 flex items-center space-x-1">
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -61,11 +61,11 @@ function CampaignCard({
               </span>
             </div>
             {campaign.claimed ? (
-              <span className="bg-gray-700 text-gray-400 px-3 py-1 rounded-full text-xs border border-gray-600">
+              <span className="bg-gray-200 text-gray-500 px-3 py-1 rounded-full text-xs">
                 Closed
               </span>
             ) : (
-              <span className="bg-blue-900/50 text-blue-400 px-3 py-1 rounded-full text-xs border border-blue-500/50">
+              <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs">
                 Active
               </span>
             )}
@@ -73,10 +73,10 @@ function CampaignCard({
         </div>
       </div>
 
-      <div className="bg-gray-900/50 px-6 py-4 border-t border-green-500/20">
-        <div className="text-sm flex items-center space-x-2">
-          <span className="text-green-500">Creator</span>
-          <span className="font-mono text-xs text-gray-400 break-all">
+      <div className="bg-gray-100 px-6 py-4 border-t border-gray-200">
+        <div className="text-xs flex items-center space-x-2">
+          <span className="text-gray-500">Creator</span>
+          <span className="font-mono text-gray-800 break-all">
             {campaign.creator}
           </span>
         </div>
@@ -124,9 +124,9 @@ export default function CampaignList({
   return (
     <div className="space-y-12">
       <section>
-        <h2 className="text-2xl font-bold text-green-400 mb-4 glow-text flex items-center space-x-3">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-3">
           <span>Active Campaigns</span>
-          <span className="text-sm bg-green-500/20 text-green-300 rounded-full px-3 py-1">
+          <span className="text-sm bg-blue-100 text-blue-600 rounded-full px-3 py-1">
             {activeCampaigns.length}
           </span>
         </h2>
@@ -147,10 +147,10 @@ export default function CampaignList({
 
       {claimedCampaigns.length > 0 && (
         <section>
-          <div className="border-t border-green-500/10 my-12"></div>
+          <div className="border-t border-gray-200 my-12"></div>
           <h2 className="text-2xl font-bold text-gray-500 mb-4 flex items-center space-x-3">
             <span>Claimed & Called Off</span>
-            <span className="text-sm bg-gray-700/50 text-gray-400 rounded-full px-3 py-1">
+            <span className="text-sm bg-gray-200 text-gray-500 rounded-full px-3 py-1">
               {claimedCampaigns.length}
             </span>
           </h2>
