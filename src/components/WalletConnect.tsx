@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { formatEther } from "ethers";
 import useIsomorphicEffect from "../hooks/useIsomorphicEffect";
+import { Wallet, XCircle } from "lucide-react";
 
 interface WalletInfo {
   address: string;
@@ -15,6 +16,12 @@ export default function WalletConnect() {
   const [error, setError] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  // Set isClient to true after the component mounts on the client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const getBalance = useCallback(async (address: string): Promise<string> => {
     if (!window.ethereum) return "0";
@@ -31,7 +38,7 @@ export default function WalletConnect() {
   }, []);
 
   const getChainId = useCallback(async (): Promise<string> => {
-    if (typeof window === "undefined" || !window.ethereum) return "0x1";
+    if (!window.ethereum) return "0x1";
     try {
       const chainId = await window.ethereum.request({ method: "eth_chainId" });
       return chainId as string;
@@ -55,12 +62,11 @@ export default function WalletConnect() {
   const connectWallet = async () => {
     setError(null);
     try {
-      if (typeof window === "undefined" || !window.ethereum) {
+      if (!window.ethereum) {
         setError("MetaMask is not installed");
         return;
       }
 
-      // Clear any previous disconnect state
       localStorage.removeItem("wallet_disconnected");
 
       const accounts = (await window.ethereum.request({
@@ -77,14 +83,11 @@ export default function WalletConnect() {
   };
 
   const disconnectWallet = () => {
-    // Actually disconnect by clearing the state
     setWalletInfo(null);
     setIsDropdownOpen(false);
-    // Store in localStorage to prevent auto-reconnect
     localStorage.setItem("wallet_disconnected", "true");
   };
 
-  // Handle outside clicks to close dropdown
   useIsomorphicEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -94,30 +97,23 @@ export default function WalletConnect() {
         setIsDropdownOpen(false);
       }
     }
-
-    // Attach the event listener
     document.addEventListener("mousedown", handleClickOutside);
-
-    // Clean up
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   useEffect(() => {
-    // Skip during server-side rendering
-    if (typeof window === "undefined") return;
+    if (!isClient) return;
 
     const ethereum = window.ethereum;
     if (!ethereum) return;
 
     const checkConnection = async () => {
       try {
-        // Check if user has explicitly disconnected
         const isDisconnected =
           localStorage.getItem("wallet_disconnected") === "true";
         if (isDisconnected) {
-          // User has explicitly disconnected, don't auto-connect
           return;
         }
 
@@ -135,7 +131,6 @@ export default function WalletConnect() {
 
     const handleAccountsChanged = async (accounts: string[]) => {
       if (accounts.length > 0) {
-        // When accounts change, we assume user is actively connecting
         localStorage.removeItem("wallet_disconnected");
         await updateWalletInfo(accounts[0]);
       } else {
@@ -158,7 +153,7 @@ export default function WalletConnect() {
       ethereum.removeListener("accountsChanged", handleAccountsChanged);
       ethereum.removeListener("chainChanged", handleChainChanged);
     };
-  }, [updateWalletInfo, walletInfo?.address]);
+  }, [isClient, updateWalletInfo, walletInfo?.address]);
 
   const getNetworkName = (chainId: string) => {
     const networks: { [key: string]: string } = {
@@ -173,11 +168,11 @@ export default function WalletConnect() {
 
   return (
     <div className="relative">
-      {walletInfo ? (
+      {isClient && walletInfo ? (
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="bg-white hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg flex items-center space-x-2 border border-blue-200 transition-all duration-200 hover:border-blue-400 group"
+            className="bg-white hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-full flex items-center space-x-2 border border-blue-200 transition-all duration-200 hover:border-blue-400 group"
           >
             <div className="w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(56,189,248,0.5)]"></div>
             <span className="text-sm font-medium truncate group-hover:text-blue-500">
@@ -240,33 +235,15 @@ export default function WalletConnect() {
             transition-all duration-200 hover:scale-105 border border-blue-500/50 
             shadow-md hover:shadow-lg"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-            <path
-              fillRule="evenodd"
-              d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span>Connect MetaMask</span>
+          <Wallet className="h-5 w-5" />
+          <span>Connect Wallet</span>
         </button>
       )}
       {error && (
         <div className="absolute top-full left-0 right-0 mt-2">
           <div className="bg-red-100 text-red-600 text-sm p-3 rounded-lg border border-red-300">
             <div className="flex items-center space-x-2">
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <XCircle className="h-5 w-5" />
               <span>{error}</span>
             </div>
           </div>
