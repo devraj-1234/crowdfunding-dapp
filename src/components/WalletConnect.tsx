@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import { formatEther } from "ethers";
 import useIsomorphicEffect from "../hooks/useIsomorphicEffect";
 import { Wallet, XCircle } from "lucide-react";
@@ -16,12 +16,6 @@ export default function WalletConnect() {
   const [error, setError] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [isClient, setIsClient] = useState(false);
-
-  // Set isClient to true after the component mounts on the client
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const getBalance = useCallback(async (address: string): Promise<string> => {
     if (!window.ethereum) return "0";
@@ -103,9 +97,7 @@ export default function WalletConnect() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!isClient) return;
-
+  useIsomorphicEffect(() => {
     const ethereum = window.ethereum;
     if (!ethereum) return;
 
@@ -153,7 +145,7 @@ export default function WalletConnect() {
       ethereum.removeListener("accountsChanged", handleAccountsChanged);
       ethereum.removeListener("chainChanged", handleChainChanged);
     };
-  }, [isClient, updateWalletInfo, walletInfo?.address]);
+  }, [updateWalletInfo, walletInfo?.address]);
 
   const getNetworkName = (chainId: string) => {
     const networks: { [key: string]: string } = {
@@ -168,7 +160,7 @@ export default function WalletConnect() {
 
   return (
     <div className="relative">
-      {isClient && walletInfo ? (
+      {walletInfo ? (
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
